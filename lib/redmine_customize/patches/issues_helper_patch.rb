@@ -20,8 +20,23 @@ module RedmineCustomize::Patches::IssuesHelperPatch
       button.new_values.each { |k, v| new_values[k] = v if v.present? }
     end
     button.custom_field_values.each do |v|
-      field_name             = "custom_field_values_#{v.custom_field_id}"
-      new_values[field_name] = v.value if v.value.present?
+      arrayContainsHypens = false
+      if v.value.kind_of?(Array)
+        v.value.each do |element|
+          if element =~ /^-+$/
+            arrayContainsHypens = true
+          end
+        end
+      end
+      if (
+          v.value != "" and v.value != nil and v.value != "Brak przydziału" and v.value != "Brak" and v.value != "Bez zmiany" and v.value !=~ /^-+$/ and not (
+          v.value.kind_of?(Array) and (
+            v.value.include?("") or v.value.include?("Brak przydziału") or v.value.include?("Brak") or v.value.include?("Bez zmiany") or arrayContainsHypens
+          )
+        ))
+        field_name             = "custom_field_values_#{v.custom_field_id}"
+        new_values[field_name] = v.value if v.value.present?
+      end
     end
     new_values
   end
